@@ -51,84 +51,84 @@ def load():
 	return words
 
 
-def mark(text, words):
+def mark(text, word_list):
 	space = re.compile('([\'".,!?\\s\\(\\)]+)')
 	stop = re.compile("[,.!?]")
 	para = re.compile("\\n")
 
-	textWords = space.split(text)
+	text_words = space.split(text)
 	positive = negative = extreme = count = 0
 	total = [0, 0, 0, 0]
-	paraStart = 0
+	para_start = 0
 	r = []
 	stats = []
-	bayesStats = []
-	wordStyle = {'1': 'word positiveW', '-1': 'word negativeW', '-8': 'word extremeW'}
-	statStyle = {'positiivne': 'positiveB', 'negatiivne': 'negativeB', 'neutraalne': 'neutralB'}
-	statWords = []
+	bayes_stats = []
+	word_style = {'1': 'word positiveW', '-1': 'word negativeW', '-8': 'word extremeW'}
+	stat_style = {'positiivne': 'positiveB', 'negatiivne': 'negativeB', 'neutraalne': 'neutralB'}
+	stat_words = []
 
-	def doBayes():
-		feats = dict([(item, True) for item in statWords if not space.match(item)])
+	def do_bayes():
+		feats = dict([(item, True) for item in stat_words if not space.match(item)])
 		cs = bayes.prob_classify(feats)
-		bayesStats.append(cs)
-		return statStyle[cs.max()]
+		bayes_stats.append(cs)
+		return stat_style[cs.max()]
 
-	def closePara():
+	def close_para():
 
-		if len(r) != paraStart:
+		if len(r) != para_start:
 
 			s = '<a name="%d"></a>%s' % (len(stats), paraOpen)
 			if extreme > 0:
-				s = s + 'para extremeP'
+				s += 'para extremeP'
 			elif positive > negative:
-				s = s + 'para positiveP'
+				s += 'para positiveP'
 			elif negative > positive:
-				s = s + 'para negativeP'
+				s += 'para negativeP'
 			elif positive > 0:
-				s = s + 'para mixedP'
+				s += 'para mixedP'
 			else:
-				s = s + 'para neutralP'
+				s += 'para neutralP'
 
 			if hybrid:
-				stat_class = doBayes()
+				stat_class = do_bayes()
 				s = s + " " + stat_class
-				del statWords[:]
+				del stat_words[:]
 
-			s = s + '">'
+			s += '">'
 
-			r.insert(paraStart, s)
+			r.insert(para_start, s)
 			r.append(word)
 			r.append(paraClose)
-			total[0] = total[0] + count
-			total[1] = total[1] + positive
-			total[2] = total[2] + negative
-			total[3] = total[3] + extreme
+			total[0] += count
+			total[1] += positive
+			total[2] += negative
+			total[3] += extreme
 			stats.append((count, positive, negative, extreme))
 		return len(r)
 
 	try:
-		i = iter(textWords)
+		i = iter(text_words)
 		while 1:
 			word = next(i)
 			if not word:
 				continue
 			if para.search(word):
-				paraStart = closePara()
+				para_start = close_para()
 				positive = negative = extreme = count = 0
 				continue
 
 			if not space.search(word):
-				count = count + 1
+				count += 1
 				if hybrid:
-					statWords.append(word)
+					stat_words.append(word)
 
 			w = word.lower()
-			if w in words:
-				flag = words[w]
+			if w in word_list:
+				flag = word_list[w]
 
 				if not flag:  # negator
 					separator = next(i, '.')
-					word = word + separator
+					word += separator
 					if stop.search(separator):  # neg eos
 						r.append(word)
 						continue
@@ -138,10 +138,10 @@ def mark(text, words):
 						r.append(word)
 						continue
 
-					word = word + word2
+					word += word2
 					w = word2.lower()
-					if w in words:
-						flag = words[w]
+					if w in word_list:
+						flag = word_list[w]
 						if flag == "1":
 							flag = "-1"
 						elif flag == "-1":
@@ -154,14 +154,14 @@ def mark(text, words):
 						flag = "-1"
 
 				if flag == "1":
-					positive = positive + 1
+					positive += 1
 				elif flag == "-1":
-					negative = negative + 1
+					negative += 1
 				elif flag == "-8":
-					extreme = extreme + 1
+					extreme += 1
 
 				if flag:
-					r.append('<span class="%s">' % (wordStyle[flag]))
+					r.append('<span class="%s">' % (word_style[flag]))
 				r.append(word)
 				if flag:
 					r.append("</span>")
@@ -170,39 +170,39 @@ def mark(text, words):
 			word = ''
 	except StopIteration:
 		pass
-	closePara()
+	close_para()
 	rtn = '<div class="text">' + ''.join(r) + '</div>'
 
 	# rtn:   html
 	# total: word counts (count, positive, negative, extreme) for whole text
 	# stats: list of word counts for each paragraph
 	# bayesStats: prob distribution for each paragraph
-	return (rtn, total, stats, bayesStats)
+	return rtn, total, stats, bayes_stats
 
 
-def textValence(all, para):
-	"""Calculate whole text emotion from paragraphs words counts.
-	   where para = [neutral, positive, negative, mixed] total number of words in each type of paragraph.
-	   and "all" is the total number of words in the text.
-	"""
+def text_valence(total, para):
+	# Calculate whole text emotion from paragraphs words counts.
+	# here para = [neutral, positive, negative, mixed] total number of words in each type of paragraph.
+	# and "all" is the total number of words in the text.
+
 	count = 0  # number of different emotions
-	maxVal = pos = 0  # max and its position
+	max_val = pos = 0  # max and its position
 
 	for i, val in enumerate(para):
 		if val > 0:
-			count = count + 1
-		if val > maxVal:
-			maxVal = val
+			count += 1
+		if val > max_val:
+			max_val = val
 			pos = i
 
 	valence = _('mostly mixed')
 	if count == 1:
 		valence = [_('only neutral'), _('only positive'), _('only negative'), _('only mixed')][pos]
 	elif count == 2:
-		if (float(all) / maxVal) < 1.5:
+		if (float(total) / max_val) < 1.5:
 			valence = [_('mostly neutral'), _('mostly positive'), _('mostly negative'), _('mostly mixed')][pos]
 	else:
-		if (all / maxVal) <= 1:
+		if (total / max_val) <= 1:
 			valence = [_('mostly neutral'), _('mostly positive'), _('mostly negative'), _('mostly mixed')][pos]
 	return valence
 
@@ -210,18 +210,16 @@ def textValence(all, para):
 classifier2style = {'positiivne': 'tile positiveT', 'negatiivne': 'tile negativeT', 'neutraalne': 'tile neutralT'}
 
 
-def chartStats(total, stats, bayesStats):
-	""" Create the bar for the statistical estimate
-	"""
-	all = total[0]
-	if all == 0:
+def chart_stats(total, stats, bayes_stats):
+	# Create the bar for the statistical estimate
+
+	if total[0] == 0:
 		return ''
 
-	r = []
-	r.append('<div class="chart">')
+	r = ['<div class="chart">']
 	i = 0
 	for s in stats:
-		prob = bayesStats[i]
+		prob = bayes_stats[i]
 		classifier = prob.max()
 		valence = classifier2style[classifier]
 
@@ -230,26 +228,33 @@ def chartStats(total, stats, bayesStats):
 		label3 = _('neutral =')
 
 		r.append(
-			'''<a href="#%d"><div class="bar %s" style="width:%.2f%%">&nbsp;<span class="info">%s %d<br/>%s:<br/>&nbsp;%s %.2f<br/>&nbsp;%s %.2f<br/>&nbsp;%s %.2f</span></div></a>'''
-			% (i, valence, (10000 * s[0] / all) / 100.0, _('words:'), s[0], _("Probability"), label1,
-			   prob.prob('positiivne'), label2, prob.prob('negatiivne'), label3, prob.prob('neutraalne')))
-		i = i + 1
+			'''
+			<a href="#%d">
+				<div class="bar %s" style="width:%.2f%%">&nbsp;
+				<span class="info">%s %d<br/>%s:<br/>&nbsp;%s %.2f<br/>&nbsp;%s %.2f<br/>&nbsp;%s %.2f</span>
+				</div>
+			</a>
+			'''
+			% (
+				i, valence, (10000 * s[0] / total[0]) / 100.0, _('words:'), s[0], _("Probability"),
+				label1, prob.prob('positiivne'), label2, prob.prob('negatiivne'), label3, prob.prob('neutraalne')
+			)
+		)
+		i += 1
 
 	r.append('</div>')
 	# html bar of paragraph properties
-	return ("".join(r))
+	return "".join(r)
 
 
 def chart(total, stats):
-	""" Create the bar for lexicon based estimation
-	"""
-	all = total[0]
-	if all == 0:
-		return ''
-	r = []
-	para = [0, 0, 0, 0]  # neutral, positive, negative, mixed
+	# Create the bar for lexicon based estimation
 
-	r.append('<div class="chart">')
+	if total[0] == 0:
+		return ''
+
+	r = ['<div class="chart">']
+	para = [0, 0, 0, 0]  # neutral, positive, negative, mixed
 	i = 0
 	for s in stats:
 		positive = s[1]
@@ -277,49 +282,57 @@ def chart(total, stats):
 
 		r.append(
 			'''
-	  <a href="#%d"><div class="bar %s" style="width:%.2f%%">&nbsp;<span class="info">%s %d<br/>%s %d<br/>%s %d<br/>%s %d</span></div></a>'''
-			% (i, valence, (10000 * s[0] / all) / 100.0, _('words:'), s[0], label1, positive, label2, negative, label3,
-			   extreme)
+			<a href="#%d">
+				<div class="bar %s" style="width:%.2f%%">&nbsp;
+				<span class="info">%s %d<br/>%s %d<br/>%s %d<br/>%s %d</span>
+				</div>
+			</a>
+			'''
+			% (
+				i, valence, (10000 * s[0] / total[0]) / 100.0, _('words:'), s[0], label1, positive, label2, negative,
+				label3, extreme
+			)
 		)
-		i = i + 1
+		i += 1
 
 	r.append('</div>')
-	valence = textValence(all, para)
+	valence = text_valence(total[0], para)
 
 	# valence: text valence name
 	# html: html bar of paragraph properties
-	return (valence, formatValence(valence) + ("".join(r)))
-
-	# <div class="bar" style="width:10%;height:90%;top:10%;background-color:blue">&nbsp;</div>
+	return valence, format_valence(valence) + ("".join(r))
 
 
-def formatValence(valence):
+# <div class="bar" style="width:10%;height:90%;top:10%;background-color:blue">&nbsp;</div>
+
+
+def format_valence(valence):
 	return '<div class="textvalence">%s: %s</div>' % (_('Valence'), valence)
 
 
-def marktext(text, dataonly, lexiconbased):
-	"""For web"""
+def mark_text(text, data_only, lexicon_based):
+	# For web
+
 	global words
 	load()
 	t = mark(text, words)
 	s = chart(t[1], t[2])
-	if dataonly:
-		if dataonly == "2":
+	if data_only:
+		if data_only == "2":
 			return s[0]
-		if dataonly == "3":
-			return emotionBayes(t[3], t[1], t[2])
+		if data_only == "3":
+			return emotion_bayes(t[3], t[1], t[2])
 		return s[1] + t[0]
-	if not lexiconbased:
-		return t[0] + formatValence(emotionBayes(t[3], t[1], t[2])) + chartStats(t[1], t[2], t[3])
+	if not lexicon_based:
+		return t[0] + format_valence(emotion_bayes(t[3], t[1], t[2])) + chart_stats(t[1], t[2], t[3])
 	return t[0] + s[1]
 
 
 #    for c in cs.samples():
 #      print c, cs.prob(c)
 
-def emotionBayes(emotions, total, stats):
-	all = total[0]
-	if all == 0:
+def emotion_bayes(emotions, total, stats):
+	if total[0] == 0:
 		return ''
 
 	para = [0, 0, 0, 0]  # neutral, positive, negative, mixed
@@ -333,11 +346,12 @@ def emotionBayes(emotions, total, stats):
 		elif e == "neutraalne":
 			para[0] = para[0] + n
 
-	return textValence(all, para)
+	return text_valence(total[0], para)
 
 
 def doit(filename):
-	"""Standalone"""
+	# Standalone
+
 	global words
 	load()
 	fi = codecs.open(filename, 'r', encoding='utf-8')
@@ -351,13 +365,13 @@ def doit(filename):
 		fo.write(htmlStart)
 		fo.write(t[0])
 		# fo.write(t[0].replace('\r','<br>'))
-		fo.write(chartStats(t[1], t[2], t[3]))
+		fo.write(chart_stats(t[1], t[2], t[3]))
 		fo.write(htmlEnd)
 		fo.close()
 	else:
 		print("Dict:", s[0])
 		print("Dict:", s[1])
-		print("Bayes:", emotionBayes(t[3], t[1], t[2]), t[3])
+		print("Bayes:", emotion_bayes(t[3], t[1], t[2]), t[3])
 
 
 def main():
