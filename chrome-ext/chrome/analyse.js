@@ -5,7 +5,7 @@ xhr.onreadystatechange = function() {
     var doc = xhr.responseXML;
     chrome.extension.sendMessage({text: xhr.responseText});
   }
-}
+};
 var oData = new FormData();
 var txt = window.getSelection().toString();
 if (txt.length==0) {
