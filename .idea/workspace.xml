@@ -5,8 +5,7 @@
     <option name="SCOPE_TYPE" value="3" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="61f3740e-e697-4bb8-be91-bd71d28fe379" name="Default" comment="More cleanup">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/shelf/Fix_coding_style2.xml" afterPath="" />
+    <list default="true" id="61f3740e-e697-4bb8-be91-bd71d28fe379" name="Default" comment="Env update">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="valence.iws" />
@@ -409,7 +408,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455463513759</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Env update">
+      <created>1455463568891</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1455463568891</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">
@@ -464,7 +469,8 @@
     <MESSAGE value="Fix lodaing custom corpus" />
     <MESSAGE value="Fix coding style" />
     <MESSAGE value="More cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="More cleanup" />
+    <MESSAGE value="Env update" />
+    <option name="LAST_COMMIT_MESSAGE" value="Env update" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
