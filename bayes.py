@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
-import operator
-import array
 import codecs
 import re
-import random
-import pickle
-from collections import defaultdict
+import sys
 from optparse import OptionParser
+
 from nltk.classify import NaiveBayesClassifier
 
 space = re.compile('[\'".,!?\\s\\(\\)]+')
@@ -18,7 +13,7 @@ corpus_name = 'korpus.csv'
 
 
 def load_corpus():
-	print >> sys.stderr, "Load corpus:", corpus_name
+	print("Load corpus: ", corpus_name)
 	features = []
 	with codecs.open(corpus_name, 'r', encoding='utf-8') as f:
 		# for line in f: print line
@@ -35,12 +30,12 @@ def get_classifier():
 	if not classifier:
 		corpus = load_corpus()
 		if corpus:
-			print >> sys.stderr, "Train"
+			print("Train")
 			classifier = NaiveBayesClassifier.train(corpus)
 			# print >> sys.stderr,  classifier.labels()
 			# print >> sys.stderr,  classifier.most_informative_features(n=10)
 		else:
-			print >> sys.stderr, "No corpus!"
+			print("No corpus!", file=sys.stderr)
 
 
 def classify(words):
@@ -61,7 +56,7 @@ def doit():
 		for para in sys.stdin:
 			words = space.split(para)
 			feats = dict([(word, True) for word in words])
-			print
+			print()
 			classifier.classify(feats)
 
 
@@ -70,10 +65,6 @@ def main():
 	parser = OptionParser(usage='Usage: %prog file')
 	parser.add_option('-f', '--file', dest="filename", help='Corpus file')
 	opts, args = parser.parse_args()
-
-	# if len(args)!=1: # or not opts.segment:
-	#    parser.print_help()
-	#    sys.exit(1)
 
 	if opts.filename:
 		corpus_name = opts.filename

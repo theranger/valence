@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import sys
-import array
 import codecs
 import re
+import sys
 from optparse import OptionParser
+
 import bayes
 
 # translation
@@ -355,12 +355,9 @@ def doit(filename):
 		fo.write(htmlEnd)
 		fo.close()
 	else:
-		print
-		"Dict:", s[0]
-		print
-		"Dict:", s[1]
-		print
-		"Bayes:", emotionBayes(t[3], t[1], t[2]), t[3]
+		print("Dict:", s[0])
+		print("Dict:", s[1])
+		print("Bayes:", emotionBayes(t[3], t[1], t[2]), t[3])
 
 
 def main():
