@@ -61,7 +61,7 @@ def doit():
 
 
 def main():
-	global classifier_name
+	global corpus_name
 	parser = OptionParser(usage='Usage: %prog file')
 	parser.add_option('-f', '--file', dest="filename", help='Corpus file')
 	opts, args = parser.parse_args()
